@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+/* ============================================================
+   THÈMES — plusieurs designs différents, commutables en un clic
+   via le composant ThemeSwitcher (voir src/components/ThemeSwitcher.tsx).
+   - afrique_pro : thème de marque par défaut (vert/rouge/jaune)
+   - nuit_pro    : variante sombre de la marque
+   - corporate / forest : thèmes professionnels DaisyUI prêts à l'emploi,
+     gratuits, utilisables tels quels ou comme base à personnaliser
+   ============================================================ */
+@plugin "daisyui" {
+  themes: afrique_pro --default, nuit_pro --prefersdark, corporate, forest;
+}
+
+@plugin "daisyui/theme" {
+  name: "afrique_pro";
+  default: true;
+  color-scheme: light;
+  --color-base-100: oklch(98% 0 0);
+  --color-base-200: oklch(95% 0 0);
+  --color-base-300: oklch(90% 0 0);
+  --color-base-content: oklch(15% 0 0);
+  --color-primary: oklch(52% 0.15 155);       /* vert #009A44 */
+  --color-primary-content: oklch(98% 0 0);
+  --color-secondary: oklch(85% 0.16 95);      /* jaune #FCD116 */
+  --color-secondary-content: oklch(20% 0 0);
+  --color-accent: oklch(50% 0.20 25);         /* rouge #CE1126 */
+  --color-accent-content: oklch(98% 0 0);
+  --color-neutral: oklch(15% 0 0);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(70% 0.15 220);
+  --color-info-content: oklch(98% 0 0);
+  --color-success: oklch(52% 0.15 155);
+  --color-success-content: oklch(98% 0 0);
+  --color-warning: oklch(85% 0.16 95);
+  --color-warning-content: oklch(20% 0 0);
+  --color-error: oklch(50% 0.20 25);
+  --color-error-content: oklch(98% 0 0);
+  --radius-selector: 1rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+}
+
+@plugin "daisyui/theme" {
+  name: "nuit_pro";
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: oklch(18% 0 0);
+  --color-base-200: oklch(14% 0 0);
+  --color-base-300: oklch(10% 0 0);
+  --color-base-content: oklch(95% 0 0);
+  --color-primary: oklch(65% 0.18 155);
+  --color-primary-content: oklch(15% 0 0);
+  --color-secondary: oklch(85% 0.16 95);
+  --color-secondary-content: oklch(20% 0 0);
+  --color-accent: oklch(60% 0.20 25);
+  --color-accent-content: oklch(98% 0 0);
+  --color-neutral: oklch(10% 0 0);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(70% 0.15 220);
+  --color-info-content: oklch(15% 0 0);
+  --color-success: oklch(65% 0.18 155);
+  --color-success-content: oklch(15% 0 0);
+  --color-warning: oklch(85% 0.16 95);
+  --color-warning-content: oklch(20% 0 0);
+  --color-error: oklch(65% 0.22 25);
+  --color-error-content: oklch(15% 0 0);
+  --radius-selector: 1rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1rem;
+}
+
+@theme {
+  /* Ces tokens pointent vers les variables du thème DaisyUI actif : changer de thème
+     (afrique_pro / nuit_pro / corporate / forest) met donc à jour TOUT l'écran existant,
+     sans avoir besoin de retoucher chaque composant déjà construit. */
+  --color-ul-black: var(--color-neutral);
+  --color-ul-green: var(--color-primary);
+  --color-ul-red: var(--color-accent);
+  --color-ul-yellow: var(--color-secondary);
+  --color-ul-gray: var(--color-base-200);
+  --color-ul-white: var(--color-base-100);
+
+  --color-brand: var(--color-primary);
+  --color-brand-dark: var(--color-primary);
+  --color-danger: var(--color-accent);
+  --color-warning: var(--color-secondary);
+  --color-surface: var(--color-base-100);
+  --color-surface-alt: var(--color-base-200);
+  --color-ink: var(--color-base-content);
+
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-heading);
+  }
+  body {
+    @apply bg-ul-gray text-ul-black antialiased transition-colors duration-200;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-ul-green text-white font-heading font-semibold px-5 py-3 rounded-xl shadow-sm
+           hover:brightness-90 active:scale-95 transition-all duration-150;
+  }
+  .btn-danger {
+    @apply bg-ul-red text-white font-heading font-semibold px-5 py-3 rounded-xl shadow-sm
+           hover:brightness-90 active:scale-95 transition-all duration-150;
+  }
+  .card {
+    @apply bg-ul-white rounded-2xl shadow-sm p-4 border border-black/5;
+  }
+  .xp-pop {
+    @apply animate-[xpPop_0.6s_ease-out];
+  }
+}
+
+@keyframes xpPop {
+  0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+  40%  { transform: translateY(-10px) scale(1.1); opacity: 1; }
+  100% { transform: translateY(-30px) scale(1); opacity: 0; }
+}
