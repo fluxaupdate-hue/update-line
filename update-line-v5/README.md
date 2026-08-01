@@ -396,3 +396,74 @@ integrated into `Programme2050Page.tsx` as a cover photo, a Vision section photo
 axis photo, and a small gallery. Flagged for the record: these are real, identifiable minors,
 and since this page is public with no login required, the same image-rights/parental-consent
 logic already built for player data applies to publishing their photos.
+
+---
+
+## 🇫🇷 V1.9 : prêt pour le déploiement réel
+
+### Ce qui a été ajouté
+- **Dépôt git initialisé** avec un premier commit — voir `DEPLOYMENT.md` pour le connecter à GitHub
+- **`.github/workflows/ci.yml`** : à chaque push, vérifie automatiquement les types, lance les
+  26 tests, et vérifie que le build réussit
+- **`vercel.json`** : redirection nécessaire pour que les routes React (comme
+  `/consentement/:token`) fonctionnent après un rechargement de page en production
+- **`DEPLOYMENT.md`** : guide complet étape par étape (GitHub → Supabase → Vercel → domaine),
+  avec une checklist post-déploiement
+- **Code-splitting par route** : chaque page ne charge que son propre code au lieu de tout
+  charger d'un coup. Le plus gros fichier est passé de 635 Ko à 275 Ko. Important pour le
+  public visé, qui a souvent une connexion mobile limitée.
+
+### Ce qui reste à faire, et que je ne peux pas faire à ta place
+Je n'ai pas tes identifiants GitHub/Supabase/Vercel/Resend, donc je ne peux pas créer les
+comptes ni pousser le code moi-même. Suis `DEPLOYMENT.md` dans l'ordre : ça prend environ
+30-45 minutes pour une première mise en ligne complète.
+
+## 🇬🇧 V1.9: ready for real deployment
+
+Git repo initialized with a first commit, a GitHub Actions CI workflow (type-check, tests,
+build on every push), a `vercel.json` SPA rewrite rule, a complete step-by-step `DEPLOYMENT.md`
+(GitHub → Supabase → Vercel → domain), and route-based code splitting (biggest bundle dropped
+from 635 KB to 275 KB). The actual account creation and pushing steps need your own
+credentials, so `DEPLOYMENT.md` walks through exactly what to do.
+
+---
+
+## 🇫🇷 V2.0 : correctif critique — boucle infinie dans les règles de sécurité
+
+Découvert en déployant réellement le projet (merci pour les tests en conditions réelles !) :
+lire son propre profil juste après inscription provoquait une erreur 500 (Internal Server
+Error), bloquant l'application sur un écran de chargement infini.
+
+### Cause
+5 règles de sécurité (RLS) sur la table `profiles` vérifiaient les droits d'accès en
+recherchant à nouveau DANS `profiles` (ex: "suis-je admin_centre ?" en relisant `profiles`).
+Comme PostgreSQL évalue TOUTES les règles permissives d'une table à chaque lecture, ça
+déclenchait une boucle : lire son profil → vérifier si admin (relit `profiles`) → vérifier si
+admin (relit `profiles`) → ... jusqu'à erreur. Ce risque était déjà noté en commentaire dans
+une version précédente du schéma, mais pas corrigé.
+
+### Correctif
+Trois fonctions `SECURITY DEFINER` (`get_my_role()`, `get_my_centre_id()`,
+`is_recruteur_verifie()`) qui contournent volontairement les règles RLS pour cette vérification
+précise, cassant la boucle. `supabase/schema.sql` est à jour ; `supabase/fix-rls-recursion.sql`
+contient uniquement le correctif, à coller dans le SQL Editor d'un projet Supabase déjà créé
+avec l'ancienne version (pas besoin de tout recréer).
+
+### Autres bugs de déploiement corrigés en cours de route (non liés au code)
+- `VITE_SUPABASE_URL` mal copiée (avec un `/rest/v1` en trop) → toujours copier l'URL de base
+  exacte depuis Project Settings > API, sans rien ajouter derrière `.supabase.co`
+- Confirmation d'email activée par défaut sur Supabase, incompatible avec le flux actuel de
+  l'app qui suppose une connexion immédiate après inscription → à désactiver dans
+  Authentication > Providers > Email > Confirm email (voir `DEPLOYMENT.md`, mis à jour)
+
+## 🇬🇧 V2.0: critical fix — infinite loop in security rules
+
+Found while doing a real deployment: reading one's own profile right after signup caused a
+500 error, freezing the app on an infinite loading screen. Cause: 5 RLS policies on `profiles`
+checked permissions by querying `profiles` again, and since Postgres evaluates every permissive
+policy on a table per read, this created a loop. Fixed with three SECURITY DEFINER helper
+functions that intentionally bypass RLS for this specific check, breaking the cycle.
+`supabase/schema.sql` is updated; `supabase/fix-rls-recursion.sql` is a standalone patch for
+already-created Supabase projects. Also documented two deployment gotchas found live: a
+malformed `VITE_SUPABASE_URL` (extra `/rest/v1`) and Supabase's default email confirmation
+being incompatible with the app's current immediate-session-after-signup flow.
