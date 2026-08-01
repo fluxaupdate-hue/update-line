@@ -8,6 +8,8 @@ interface AuthContextValue {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  profileLoading: boolean;
+  profileError: boolean;
   isMinorUser: boolean;
   needsParentalConsent: boolean;
   refreshProfile: () => Promise<void>;
@@ -20,14 +22,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Distinct de `loading` (session) : suit précisément si la lecture du profil est en cours,
+  // et si elle a échoué, pour ne jamais laisser quelqu'un bloqué sur un écran de chargement
+  // infini sans échappatoire (ex: profil manquant suite à une inscription interrompue).
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
 
   async function loadProfile(userId: string) {
+    setProfileLoading(true);
+    setProfileError(false);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    if (!error && data) setProfile(data as Profile);
+    if (!error && data) {
+      setProfile(data as Profile);
+    } else {
+      setProfile(null);
+      setProfileError(true);
+    }
+    setProfileLoading(false);
   }
 
   async function refreshProfile() {
@@ -37,7 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      if (data.session?.user?.id) loadProfile(data.session.user.id);
+      if (data.session?.user?.id) {
+        loadProfile(data.session.user.id);
+      } else {
+        setProfileLoading(false);
+      }
       setLoading(false);
     });
 
@@ -47,6 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loadProfile(newSession.user.id);
       } else {
         setProfile(null);
+        setProfileLoading(false);
+        setProfileError(false);
       }
     });
 
@@ -63,6 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     profile,
     loading,
+    profileLoading,
+    profileError,
     isMinorUser: minorUser,
     // Un mineur ne doit avoir aucun accès fonctionnel tant que le consentement parental
     // n'a pas été validé par le centre — voir PendingConsentPage. Logique testée dans
