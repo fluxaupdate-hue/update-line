@@ -567,21 +567,37 @@ create policy "profil_owner_select" on profiles for select using (auth.uid() = i
 create policy "profil_owner_update" on profiles for update using (auth.uid() = id);
 create policy "profil_insert_self" on profiles for insert with check (auth.uid() = id);
 
+-- Fonctions SECURITY DEFINER : contournent volontairement les policies RLS pour cette
+-- vérification précise, ce qui casse la boucle infinie qu'on aurait sinon (une policy sur
+-- `profiles` qui relit `profiles` déclenche la réévaluation de TOUTES les policies de la
+-- table, y compris elle-même, à chaque lecture -> erreur 500 en conditions réelles).
+create or replace function public.get_my_role()
+returns text
+language sql security definer stable set search_path = public as $$
+  select role::text from profiles where id = auth.uid();
+$$;
+
+create or replace function public.get_my_centre_id()
+returns uuid
+language sql security definer stable set search_path = public as $$
+  select centre_id from profiles where id = auth.uid();
+$$;
+
+create or replace function public.is_recruteur_verifie()
+returns boolean
+language sql security definer stable set search_path = public as $$
+  select coalesce(
+    (select recruteur_verifie from profiles where id = auth.uid() and role = 'recruteur'),
+    false
+  );
+$$;
+
 -- Un admin_centre voit et met à jour les profils de SON centre (valider consentement, vérifier joueur, etc.)
--- Note prod : ces policies admin_centre interrogent `profiles` depuis une policy sur `profiles`,
--- ce qui fonctionne mais peut être lent/récursif à grande échelle. En production, remplacer par
--- une fonction SECURITY DEFINER (ex. get_my_centre_id()) pour éviter toute récursion RLS.
 create policy "profil_select_admin_centre" on profiles for select using (
-  exists (
-    select 1 from profiles admin
-    where admin.id = auth.uid() and admin.role = 'admin_centre' and admin.centre_id = profiles.centre_id
-  )
+  public.get_my_role() = 'admin_centre' and public.get_my_centre_id() = profiles.centre_id
 );
 create policy "profil_update_admin_centre" on profiles for update using (
-  exists (
-    select 1 from profiles admin
-    where admin.id = auth.uid() and admin.role = 'admin_centre' and admin.centre_id = profiles.centre_id
-  )
+  public.get_my_role() = 'admin_centre' and public.get_my_centre_id() = profiles.centre_id
 );
 
 -- Recruteur vérifié : ne voit QUE les profils en recrutement actif, et pour un mineur
@@ -593,20 +609,16 @@ create policy "profil_select_recruteur_verifie" on profiles for select using (
     date_naissance <= (current_date - interval '18 years')
     or recrutement_valide_par_parent = true
   )
-  and exists (
-    select 1 from profiles r where r.id = auth.uid() and r.role = 'recruteur' and r.recruteur_verifie = true
-  )
+  and public.get_my_role() = 'recruteur' and public.is_recruteur_verifie()
 );
 
 -- Un admin_centre peut vérifier n'importe quel compte recruteur (réseau de confiance simple,
 -- suffisant en V1 ; en prod, envisager une vérification centralisée par Update Line lui-même)
 create policy "profil_select_recruteurs_admin" on profiles for select using (
-  role = 'recruteur'
-  and exists (select 1 from profiles admin where admin.id = auth.uid() and admin.role = 'admin_centre')
+  role = 'recruteur' and public.get_my_role() = 'admin_centre'
 );
 create policy "profil_update_verif_recruteur" on profiles for update using (
-  role = 'recruteur'
-  and exists (select 1 from profiles admin where admin.id = auth.uid() and admin.role = 'admin_centre')
+  role = 'recruteur' and public.get_my_role() = 'admin_centre'
 );
 
 -- Confirmation de consentement par lien : le parent n'a pas de compte au moment de cliquer,
