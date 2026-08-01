@@ -5,6 +5,7 @@ import { CloudSun, MapPin, BarChart3, GraduationCap, Plane, Compass, Users, Sett
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguageSwitch from '../../components/LanguageSwitch';
+import SignOutButton from '../../components/SignOutButton';
 import ProfilRemarques from '../../components/ProfilRemarques';
 import AvatarUpload from '../../components/AvatarUpload';
 
@@ -41,7 +42,10 @@ export default function DashboardPage() {
             {t('dashboard.welcome', { name: profile.nom_complet.split(' ')[0] })}
           </h1>
         </div>
-        <LanguageSwitch />
+        <div className="flex items-center gap-2">
+          <LanguageSwitch />
+          <SignOutButton />
+        </div>
       </div>
 
       <div className="card mt-5 flex items-center gap-4">
