@@ -364,6 +364,9 @@
     "contact_cta": "Nous contacter"
   },
   "common": {
+    "sign_out": "Se déconnecter",
+    "profile_error_title": "Impossible de charger ton profil",
+    "profile_error_body": "Ça peut arriver si l'inscription a été interrompue. Déconnecte-toi et réessaie, ou contacte ton centre si ça persiste.",
     "cancel": "Annuler",
     "save": "Enregistrer",
     "loading": "Chargement...",

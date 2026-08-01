@@ -364,6 +364,9 @@
     "contact_cta": "Contact us"
   },
   "common": {
+    "sign_out": "Sign out",
+    "profile_error_title": "Couldn't load your profile",
+    "profile_error_body": "This can happen if signup was interrupted. Sign out and try again, or contact your center if it keeps happening.",
     "cancel": "Cancel",
     "save": "Save",
     "loading": "Loading...",
