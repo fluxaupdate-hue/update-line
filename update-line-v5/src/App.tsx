@@ -1,31 +1,43 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import DashboardPage from './modules/dashboard/DashboardPage';
-import SignalementPage from './modules/security/SignalementPage';
-import WellnessCheckinPage from './modules/wellness/WellnessCheckinPage';
-import AdminCentrePage from './modules/admin/AdminCentrePage';
-import ClubPage from './modules/club/ClubPage';
-import SchoolPage from './modules/school/SchoolPage';
-import OpportunitiesPage from './modules/opportunities/OpportunitiesPage';
-import MentorPage from './modules/mentor/MentorPage';
-import CommunityPage from './modules/community/CommunityPage';
-import StatsPage from './modules/stats/StatsPage';
-import ParentDashboardPage from './modules/parent/ParentDashboardPage';
-import ConformitePage from './modules/conformite/ConformitePage';
-import Programme2050Page from './modules/programme2050/Programme2050Page';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import CentreSignupPage from './pages/CentreSignupPage';
-import RecruiterSignupPage from './pages/RecruiterSignupPage';
-import PendingConsentPage from './pages/PendingConsentPage';
-import ConsentConfirmPage from './pages/ConsentConfirmPage';
-import GuidePage from './pages/GuidePage';
 import SecurityFAB from './components/SecurityFAB';
+import ProfileErrorFallback from './components/ProfileErrorFallback';
+
+// Chargement à la demande (code-splitting par route) : chaque page n'est téléchargée que
+// lorsqu'on y accède, ce qui réduit fortement le poids du premier chargement. Important pour
+// le public visé, qui a souvent une connexion mobile limitée.
+const DashboardPage = lazy(() => import('./modules/dashboard/DashboardPage'));
+const SignalementPage = lazy(() => import('./modules/security/SignalementPage'));
+const WellnessCheckinPage = lazy(() => import('./modules/wellness/WellnessCheckinPage'));
+const AdminCentrePage = lazy(() => import('./modules/admin/AdminCentrePage'));
+const ClubPage = lazy(() => import('./modules/club/ClubPage'));
+const SchoolPage = lazy(() => import('./modules/school/SchoolPage'));
+const OpportunitiesPage = lazy(() => import('./modules/opportunities/OpportunitiesPage'));
+const MentorPage = lazy(() => import('./modules/mentor/MentorPage'));
+const CommunityPage = lazy(() => import('./modules/community/CommunityPage'));
+const StatsPage = lazy(() => import('./modules/stats/StatsPage'));
+const ParentDashboardPage = lazy(() => import('./modules/parent/ParentDashboardPage'));
+const ConformitePage = lazy(() => import('./modules/conformite/ConformitePage'));
+const Programme2050Page = lazy(() => import('./modules/programme2050/Programme2050Page'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const CentreSignupPage = lazy(() => import('./pages/CentreSignupPage'));
+const RecruiterSignupPage = lazy(() => import('./pages/RecruiterSignupPage'));
+const PendingConsentPage = lazy(() => import('./pages/PendingConsentPage'));
+const ConsentConfirmPage = lazy(() => import('./pages/ConsentConfirmPage'));
+const GuidePage = lazy(() => import('./pages/GuidePage'));
+
+function PageLoader() {
+  return <p className="p-6">Chargement…</p>;
+}
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading, needsParentalConsent } = useAuth();
-  if (loading) return <p className="p-6">Chargement…</p>;
+  const { session, loading, profileLoading, profileError, needsParentalConsent } = useAuth();
+  if (loading) return <PageLoader />;
   if (!session) return <Navigate to="/login" replace />;
+  if (profileError) return <ProfileErrorFallback />;
+  if (profileLoading) return <PageLoader />;
   if (needsParentalConsent) return <Navigate to="/pending-consent" replace />;
   return <>{children}</>;
 }
@@ -40,28 +52,30 @@ function AppRoutes() {
   const { session } = useAuth();
   return (
     <>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/signup-centre" element={<CentreSignupPage />} />
-        <Route path="/signup-recruteur" element={<RecruiterSignupPage />} />
-        <Route path="/pending-consent" element={<PendingConsentPage />} />
-        <Route path="/consentement/:token" element={<ConsentConfirmPage />} />
-        <Route path="/programme-2050" element={<Programme2050Page />} />
-        <Route path="/" element={<PrivateRoute><RoleHome /></PrivateRoute>} />
-        <Route path="/guide" element={<PrivateRoute><GuidePage /></PrivateRoute>} />
-        <Route path="/security" element={<PrivateRoute><SignalementPage /></PrivateRoute>} />
-        <Route path="/wellness" element={<PrivateRoute><WellnessCheckinPage /></PrivateRoute>} />
-        <Route path="/admin" element={<PrivateRoute><AdminCentrePage /></PrivateRoute>} />
-        <Route path="/conformite" element={<PrivateRoute><ConformitePage /></PrivateRoute>} />
-        <Route path="/club" element={<PrivateRoute><ClubPage /></PrivateRoute>} />
-        <Route path="/school" element={<PrivateRoute><SchoolPage /></PrivateRoute>} />
-        <Route path="/opportunities" element={<PrivateRoute><OpportunitiesPage /></PrivateRoute>} />
-        <Route path="/mentor" element={<PrivateRoute><MentorPage /></PrivateRoute>} />
-        <Route path="/community" element={<PrivateRoute><CommunityPage /></PrivateRoute>} />
-        <Route path="/stats" element={<PrivateRoute><StatsPage /></PrivateRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup-centre" element={<CentreSignupPage />} />
+          <Route path="/signup-recruteur" element={<RecruiterSignupPage />} />
+          <Route path="/pending-consent" element={<PendingConsentPage />} />
+          <Route path="/consentement/:token" element={<ConsentConfirmPage />} />
+          <Route path="/programme-2050" element={<Programme2050Page />} />
+          <Route path="/" element={<PrivateRoute><RoleHome /></PrivateRoute>} />
+          <Route path="/guide" element={<PrivateRoute><GuidePage /></PrivateRoute>} />
+          <Route path="/security" element={<PrivateRoute><SignalementPage /></PrivateRoute>} />
+          <Route path="/wellness" element={<PrivateRoute><WellnessCheckinPage /></PrivateRoute>} />
+          <Route path="/admin" element={<PrivateRoute><AdminCentrePage /></PrivateRoute>} />
+          <Route path="/conformite" element={<PrivateRoute><ConformitePage /></PrivateRoute>} />
+          <Route path="/club" element={<PrivateRoute><ClubPage /></PrivateRoute>} />
+          <Route path="/school" element={<PrivateRoute><SchoolPage /></PrivateRoute>} />
+          <Route path="/opportunities" element={<PrivateRoute><OpportunitiesPage /></PrivateRoute>} />
+          <Route path="/mentor" element={<PrivateRoute><MentorPage /></PrivateRoute>} />
+          <Route path="/community" element={<PrivateRoute><CommunityPage /></PrivateRoute>} />
+          <Route path="/stats" element={<PrivateRoute><StatsPage /></PrivateRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
       {session && <SecurityFAB />}
     </>
   );
