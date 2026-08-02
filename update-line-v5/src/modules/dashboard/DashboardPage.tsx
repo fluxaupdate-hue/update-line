@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CloudSun, MapPin, BarChart3, GraduationCap, Plane, Compass, Users, Settings, BookOpen, ShieldCheck, Building2 } from 'lucide-react';
+import { CloudSun, MapPin, BarChart3, GraduationCap, Plane, Compass, Users, Settings, BookOpen, ShieldCheck, Building2, Pencil } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguageSwitch from '../../components/LanguageSwitch';
@@ -63,6 +63,13 @@ export default function DashboardPage() {
             {profile.verifie_par_centre ? t('dashboard.verified') : t('dashboard.not_verified')}
           </span>
         </div>
+        <Link
+          to="/profil"
+          aria-label={t('profile_edit.edit_cta') ?? 'Modifier mon profil'}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 text-neutral-500"
+        >
+          <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
+        </Link>
         <div className="text-right">
           <p className="font-heading text-xs text-neutral-400">XP</p>
           <p className="font-heading text-lg font-bold text-ul-green">{profile.xp_total}</p>
