@@ -295,6 +295,21 @@
     "no_document": "Aucun justificatif déposé",
     "no_staff": "Aucun coach à vérifier pour l'instant."
   },
+  "profile_edit": {
+    "title": "Modifier mon profil",
+    "poste": "Poste",
+    "poste_placeholder": "ex: Ailier, Meneur, Attaquant...",
+    "taille": "Taille (cm)",
+    "poids": "Poids (kg)",
+    "ecole": "École",
+    "social_title": "Réseaux sociaux",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "youtube": "YouTube",
+    "save_success": "Profil mis à jour !",
+    "edit_cta": "Modifier mon profil"
+  },
   "programme2050": {
     "nav_label": "Programme 2050",
     "badge": "ASBL — Association sans but lucratif",
