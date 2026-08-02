@@ -19,6 +19,7 @@ const CommunityPage = lazy(() => import('./modules/community/CommunityPage'));
 const StatsPage = lazy(() => import('./modules/stats/StatsPage'));
 const ParentDashboardPage = lazy(() => import('./modules/parent/ParentDashboardPage'));
 const ConformitePage = lazy(() => import('./modules/conformite/ConformitePage'));
+const ProfileEditPage = lazy(() => import('./modules/dashboard/ProfileEditPage'));
 const Programme2050Page = lazy(() => import('./modules/programme2050/Programme2050Page'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
@@ -67,6 +68,7 @@ function AppRoutes() {
           <Route path="/wellness" element={<PrivateRoute><WellnessCheckinPage /></PrivateRoute>} />
           <Route path="/admin" element={<PrivateRoute><AdminCentrePage /></PrivateRoute>} />
           <Route path="/conformite" element={<PrivateRoute><ConformitePage /></PrivateRoute>} />
+          <Route path="/profil" element={<PrivateRoute><ProfileEditPage /></PrivateRoute>} />
           <Route path="/club" element={<PrivateRoute><ClubPage /></PrivateRoute>} />
           <Route path="/school" element={<PrivateRoute><SchoolPage /></PrivateRoute>} />
           <Route path="/opportunities" element={<PrivateRoute><OpportunitiesPage /></PrivateRoute>} />
